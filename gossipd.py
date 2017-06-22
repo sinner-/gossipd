@@ -54,15 +54,15 @@ while True:
         data = conn.recv(PARCEL_SIZE)
         
         if data.startswith("hello "):
-            name_data = data.split(" ")
+            hello = data.split(" ")
 
-            if len(name_data) == 1:
+            if len(hello) == 1:
                 conn.send("bad_hello\r\n")
                 conn.shutdown(1)
                 conn.close()
                 break
 
-            name = name_data[1].strip()
+            name = hello[1].strip()
 
             if name not in peers.keys():
                 conn.send("unknown_peer\r\n")
