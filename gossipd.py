@@ -3,8 +3,6 @@
 import multiprocessing
 import socket
 import random
-import base64
-import json
 
 LISTEN_IP = '0.0.0.0'
 LISTEN_PORT = 5555
@@ -20,6 +18,9 @@ sock.listen(SOCKET_BACKLOG)
 
 peers = {'sina': {'key': 'aaa', 'hosts': ['127.0.0.1:5555']}}
 messages = [{'timestamp': 'x', 'from': 'sina', 'source': 'alice', 'text': "best msg is best"}]
+
+def encrypt(name, challenge):
+    return challenge
 
 def client():
     while True:
@@ -71,14 +72,14 @@ while True:
                 conn.close()
                 break
 
-            challenge = base64.encode("areyoureal") #TODO: Generate OTP
-            conn.send("challenge %s\n" % challenge)
+            challenge = "areyoureal" #TODO: Generate OTP
+            conn.send("challenge %s\n" % encrypt(name, challenge))
             
             response = conn.recv(PARCEL_SIZE).strip()
             if response == "response %s" % challenge:
                 conn.send("messages %d\n" % len(messages))
                 for message in messages:
-                    conn.send("message %s\n" % base64.encode(json.dumps(message)))
+                    conn.send("message %s,%s,%s,%s\n" % (message['time'], message['from'], message['source'], message['text']))
 
                 #TODO:
                 #recv #!messages N 
