@@ -18,7 +18,7 @@ sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 sock.bind((LISTEN_IP, LISTEN_PORT))
 sock.listen(SOCKET_BACKLOG)
 
-peers = {'sina': {'key': 'aaa', 'past_ips': ['127.0.0.1']}}
+peers = {'sina': {'key': 'aaa', 'hosts': ['127.0.0.1:5555']}}
 messages = [{'timestamp': 'x', 'from': 'sina', 'source': 'alice', 'text': "best msg is best"}]
 
 def client():
@@ -31,7 +31,8 @@ def client():
         elif action == 3:
             print("get messages from peers")
             #for peer in peers:
-            #    for ip in peer['past_ips']:
+            #    for host in peer['hosts']:
+            #       #connect to peer
             #       #send hello
             #       #recv otp
             #       #send response
