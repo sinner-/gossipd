@@ -10,7 +10,6 @@ LISTEN_IP = '0.0.0.0'
 LISTEN_PORT = 5555
 SOCKET_BACKLOG = 10
 PARCEL_SIZE = 2048
-CONTROL_STRING = '#!'
 
 random.seed()
 
@@ -54,11 +53,11 @@ while True:
     while True:
         data = conn.recv(PARCEL_SIZE)
         
-        if data.startswith("%shello " % CONTROL_STRING):
+        if data.startswith("hello "):
             name_data = data.split(" ")
 
             if len(name_data) == 1:
-                conn.send("%sbad_hello\r\n" % CONTROL_STRING)
+                conn.send("bad_hello\r\n")
                 conn.shutdown(1)
                 conn.close()
                 break
@@ -66,19 +65,19 @@ while True:
             name = name_data[1].strip()
 
             if name not in peers.keys():
-                conn.send("%sunknown_peer\r\n" % CONTROL_STRING)
+                conn.send("unknown_peer\r\n")
                 conn.shutdown(1)
                 conn.close()
                 break
 
             challenge = base64.encode("areyoureal") #TODO: Generate OTP
-            conn.send("%schallenge %s\r\n" % (CONTROL_STRING, challenge))
+            conn.send("challenge %s\r\n" % challenge)
             
             response = conn.recv(PARCEL_SIZE).strip()
-            if response == "%sresponse %s" % (CONTROL_STRING, challenge):
-                conn.send("%smessages %d\r\n" % (CONTROL_STRING, len(messages)))
+            if response == "response %s" % challenge:
+                conn.send("messages %d\r\n" % len(messages))
                 for message in messages:
-                    conn.send("%smessage %s\r\n" % (CONTROL_STRING, base64.encode(json.dumps(message))))
+                    conn.send("message %s\r\n" % base64.encode(json.dumps(message)))
 
                 #TODO:
                 #recv #!messages N 
@@ -88,7 +87,7 @@ while True:
                 conn.close()
                 break
             else:
-                conn.send("%sbad_otp\r\n" % CONTROL_STRING)
+                conn.send("bad_otp\r\n")
                 conn.shutdown(1)
                 conn.close()
                 break
