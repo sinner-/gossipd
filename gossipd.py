@@ -58,7 +58,7 @@ while True:
             hello = data.split(" ")
 
             if len(hello) == 1:
-                conn.send("bad_hello\r\n")
+                conn.send("bad_hello\n")
                 conn.shutdown(1)
                 conn.close()
                 break
@@ -66,19 +66,19 @@ while True:
             name = hello[1].strip()
 
             if name not in peers.keys():
-                conn.send("unknown_peer\r\n")
+                conn.send("unknown_peer\n")
                 conn.shutdown(1)
                 conn.close()
                 break
 
             challenge = base64.encode("areyoureal") #TODO: Generate OTP
-            conn.send("challenge %s\r\n" % challenge)
+            conn.send("challenge %s\n" % challenge)
             
             response = conn.recv(PARCEL_SIZE).strip()
             if response == "response %s" % challenge:
-                conn.send("messages %d\r\n" % len(messages))
+                conn.send("messages %d\n" % len(messages))
                 for message in messages:
-                    conn.send("message %s\r\n" % base64.encode(json.dumps(message)))
+                    conn.send("message %s\n" % base64.encode(json.dumps(message)))
 
                 #TODO:
                 #recv #!messages N 
@@ -88,7 +88,7 @@ while True:
                 conn.close()
                 break
             else:
-                conn.send("bad_otp\r\n")
+                conn.send("bad_otp\n")
                 conn.shutdown(1)
                 conn.close()
                 break
