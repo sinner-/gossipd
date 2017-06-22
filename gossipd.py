@@ -1,13 +1,15 @@
 #TODO: DRY refactor for sending messages, sending errors
-#TODO: Parcel size tuning
 import multiprocessing
 import socket
 import random
+import hashlib
 
 LISTEN_IP = '0.0.0.0'
 LISTEN_PORT = 5555
 SOCKET_BACKLOG = 10
 MAX_NAME_LEN = 50
+OTP_RANGE_START = 2**128
+OTP_RANGE_END = 2**129
 
 random.seed()
 
@@ -72,7 +74,7 @@ while True:
                 conn.close()
                 break
 
-            challenge = "areyoureal" #TODO: Generate OTP
+            challenge = hashlib.sha256(str(random.randint(OTP_RANGE_START, OTP_RANGE_END))).hexdigest()
             conn.send("challenge %s\n" % encrypt(name, challenge))
             
             response = conn.recv(len("response ") + len(challenge) + 1).strip()
