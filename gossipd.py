@@ -3,6 +3,7 @@ import multiprocessing
 import socket
 import random
 import hashlib
+import re
 
 LISTEN_IP = '0.0.0.0'
 LISTEN_PORT = 5555
@@ -12,6 +13,8 @@ OTP_RANGE_START = 2**128
 OTP_RANGE_END = 2**129
 
 random.seed()
+
+hello_pattern = re.compile("(hello [a-zA-Z0-9]+)$")
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -54,44 +57,35 @@ while True:
 
     conn, peer_ip = sock.accept()
 
-    while True:
-        data = conn.recv(len("hello ") + MAX_NAME_LEN + 1)
-        
-        if data.startswith("hello "):
-            hello = data.split(" ")
+    data = conn.recv(len("hello ") + MAX_NAME_LEN + 1).strip()
 
-            if len(hello) == 1:
-                conn.send("bad_hello\n")
-                conn.shutdown(1)
-                conn.close()
-                break
+    if hello_pattern.match(data)
+        hello = data.split(" ")
 
-            name = hello[1].strip()
+        name = hello[1].strip()
 
-            if name not in peers.keys():
-                conn.send("unknown_peer\n")
-                conn.shutdown(1)
-                conn.close()
-                break
+        if name not in peers.keys():
+            conn.send("unknown_peer\n")
+            conn.shutdown(1)
+            conn.close()
+            continue
 
-            challenge = hashlib.sha256(str(random.randint(OTP_RANGE_START, OTP_RANGE_END))).hexdigest()
-            conn.send("challenge %s\n" % encrypt(name, challenge))
-            
-            response = conn.recv(len("response ") + len(challenge) + 1).strip()
-            if response == "response %s" % challenge:
-                conn.send("messages %d\n" % len(messages))
-                for message in messages:
-                    conn.send("message %s,%s,%s,%s\n" % (message['time'], message['from'], message['source'], message['text']))
+        challenge = hashlib.sha256(str(random.randint(OTP_RANGE_START, OTP_RANGE_END))).hexdigest()
+        conn.send("challenge %s\n" % encrypt(name, challenge))
 
-                #TODO:
-                #recv #!messages N 
-                #loop N times recv message and append
+        response = conn.recv(len("response ") + len(challenge) + 1).strip()
+        if response == "response %s" % challenge:
+            conn.send("messages %d\n" % len(messages))
+            for message in messages:
+                conn.send("message %s,%s,%s,%s\n" % (message['time'], message['from'], message['source'], message['text']))
 
-                conn.shutdown(1)
-                conn.close()
-                break
-            else:
-                conn.send("bad_otp\n")
-                conn.shutdown(1)
-                conn.close()
-                break
+            #TODO:
+            #recv #!messages N
+            #loop N times recv message and append
+
+            conn.shutdown(1)
+            conn.close()
+        else:
+            conn.send("bad_otp\n")
+            conn.shutdown(1)
+            conn.close()
