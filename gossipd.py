@@ -7,7 +7,7 @@ import random
 LISTEN_IP = '0.0.0.0'
 LISTEN_PORT = 5555
 SOCKET_BACKLOG = 10
-PARCEL_SIZE = 2048
+MAX_NAME_LEN = 50
 
 random.seed()
 
@@ -53,7 +53,7 @@ while True:
     conn, peer_ip = sock.accept()
 
     while True:
-        data = conn.recv(PARCEL_SIZE)
+        data = conn.recv(len("hello ") + MAX_NAME_LEN + 1)
         
         if data.startswith("hello "):
             hello = data.split(" ")
@@ -75,7 +75,7 @@ while True:
             challenge = "areyoureal" #TODO: Generate OTP
             conn.send("challenge %s\n" % encrypt(name, challenge))
             
-            response = conn.recv(PARCEL_SIZE).strip()
+            response = conn.recv(len("response ") + len(challenge) + 1).strip()
             if response == "response %s" % challenge:
                 conn.send("messages %d\n" % len(messages))
                 for message in messages:
