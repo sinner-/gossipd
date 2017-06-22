@@ -21,9 +21,11 @@ sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 sock.bind((LISTEN_IP, LISTEN_PORT))
 sock.listen(SOCKET_BACKLOG)
 
-peers = {'sina': {'key': 'aaa', 'hosts': ['127.0.0.1:5555']}}
+keys = [{'sina': ('privatekey', 'publickey')}, {'bogus': ('privatekey', 'publickey')}]
+peers = {'sina': {'peer_key': 'aaa', 'my_key': 'bbb', 'hosts': ['127.0.0.1:5555']}}
 messages = [{'timestamp': 'x', 'from': 'sina', 'source': 'alice', 'text': "best msg is best"}]
 
+#TODO: implement
 def encrypt(name, challenge):
     return challenge
 
@@ -35,11 +37,11 @@ def client():
         elif action == 2:
             print("send bogus challenges")
         elif action == 3:
-            print("get messages from peers")
+            print("get/send messages from/to peers")
             #for peer in peers:
             #    for host in peer['hosts']:
             #       #connect to peer
-            #       #send hello
+            #       #send hello using unique peer key
             #       #recv otp
             #       #send response
             #       #recv #!messages N
@@ -77,6 +79,7 @@ while True:
         if response == "response %s" % challenge:
             conn.send("messages %d\n" % len(messages))
             for message in messages:
+                #TODO: should probably transmit message length
                 conn.send("message %s,%s,%s,%s\n" % (message['time'], message['from'], message['source'], message['text']))
 
             #TODO:
