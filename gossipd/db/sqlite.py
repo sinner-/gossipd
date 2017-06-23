@@ -36,3 +36,14 @@ class DB(object):
             );''' % (CONF.MAX_NAME_LEN, CONF.MAX_NAME_LEN))
         cursor.commit()
         cursor.close()
+
+    def get_cursor(self):
+        """ get_cursor
+        """
+
+        return self._conn.cursor()
+
+    def commit(self):
+        """ commit
+        """
+        self._conn.commit()

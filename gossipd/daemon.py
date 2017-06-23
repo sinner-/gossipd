@@ -5,7 +5,7 @@ import random
 import hashlib
 import re
 from util.gpg import encrypt
-from db.sqlite import DB
+from db.model import Model
 from config import CONF
 
 class Daemon(object):
@@ -20,9 +20,9 @@ class Daemon(object):
     def __init__(self):
         random.seed()
 
-        self._db = DB()
+        self._model = Model()
 
-        self._hello_pattern = re.compile("(hello [a-zA-Z0-9]+)$")
+        self._hello_pattern = re.compile("(hello [a-zA-Z0-9_]+)$")
 
         self._sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self._sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -64,7 +64,7 @@ class Daemon(object):
 
                 name = hello[1].strip()
 
-                if name not in peers.keys():
+                if self._model.check_peer(name):
                     self._error("unknown_peer")
                     continue
 
@@ -79,21 +79,24 @@ class Daemon(object):
                 response = self._recv(len("response ") + len(challenge) + 1)
 
                 if response and response == "response %s" % challenge:
+                    messages = self._model.get_messages(name)
                     self._send("messages %d" % len(messages))
                     for message in messages:
                         #TODO: should probably transmit message length
                         self._send(
                             "message %s,%s,%s,%s" % (
-                                message['time'],
-                                message['from'],
-                                message['source'],
-                                message['text']
+                                message[0],
+                                message[1],
+                                message[2],
+                                message[3]
                             )
                         )
 
                     #TODO:
                     #recv #!messages N
                     #loop N times recv message and append
+
+                    self._model.last_seen(name)
 
                     self._close()
                 else:
