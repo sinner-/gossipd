@@ -100,4 +100,4 @@ class Daemon(object):
 
                     self._close()
                 else:
-                    self._error("bad_otp\n")
+                    self._error("bad_otp")
