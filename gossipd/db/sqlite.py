@@ -31,7 +31,7 @@ class DB(object):
             CREATE TABLE IF NOT EXISTS messages (
                 timestamp DATETIME,
                 from VARCHAR(%d),
-                source VARCHAR(%d),
+                delivered_by VARCHAR(%d),
                 message TEXT
             );''' % (CONF.MAX_NAME_LEN, CONF.MAX_NAME_LEN))
         cursor.commit()

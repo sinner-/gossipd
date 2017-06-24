@@ -33,7 +33,7 @@ class Model(object):
 
         cursor = self._db.get_cursor()
         messages = cursor.execute("""
-            SELECT timestamp, from, source, text
+            SELECT from, text
             FROM messages
             WHERE timestamp > (
                 SELECT last_seen
@@ -55,5 +55,17 @@ class Model(object):
             SET last_seen = NOW()
             WHERE name = ?
         """, (name,))
+        self._db.commit()
+        cursor.close()
+
+    def save_message(self, peer, name, message):
+        """ save_messages
+        """
+
+        cursor = self._db.get_cursor()
+        cursor.execute("""
+            INSERT INTO messages
+            VALUES (NOW(), ?, ?, ?)
+        """, (name, peer, message))
         self._db.commit()
         cursor.close()

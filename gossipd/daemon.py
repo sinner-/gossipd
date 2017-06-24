@@ -14,6 +14,7 @@ class Daemon(object):
 
     _db = None
     _hello_pattern = None
+    _messages_pattern = None
     _sock = None
     _conn = None
 
@@ -23,6 +24,7 @@ class Daemon(object):
         self._model = Model()
 
         self._hello_pattern = re.compile("(hello [a-zA-Z0-9_]+)$")
+        self._messages_pattern = re.compile("messages [0-9]{%d}" % CONF.MSGS_MAX_DIGITS)
 
         self._sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self._sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -35,7 +37,7 @@ class Daemon(object):
 
     def _recv(self, payload_size):
         if self._conn:
-            data = self._conn.recv(payload_size)
+            data = self._conn.recv(payload_size + 1)
             if data:
                 return data.decode().strip()
         return None
@@ -57,7 +59,7 @@ class Daemon(object):
         while True:
             self._conn, _ = self._sock.accept()
 
-            data = self._recv(len("hello ") + CONF.MAX_NAME_LEN + 1)
+            data = self._recv(len("hello ") + CONF.MAX_NAME_LEN)
 
             if data and self._hello_pattern.match(data):
                 hello = data.split(" ")
@@ -76,27 +78,41 @@ class Daemon(object):
 
                 self._send("challenge %s" % encrypt(name, challenge))
 
-                response = self._recv(len("response ") + len(challenge) + 1)
+                response = self._recv(len("response ") + len(challenge))
 
                 if response and response == "response %s" % challenge:
                     messages = self._model.get_messages(name)
-                    self._send("messages %d" % len(messages))
+                    self._send("messages %0*d" % (CONF.MSGS_MAX_DIGITS, len(messages)))
                     for message in messages:
-                        #TODO: should probably transmit message length
-                        self._send(
-                            "message %s,%s,%s,%s" % (
+                        payload = (
+                            "%s,%s" % (
                                 message[0],
                                 message[1],
-                                message[2],
-                                message[3]
+                            )
+                        )
+                        self._send(
+                            "message %0*d %s" % (
+                                CONF.MSGS_MAX_DIGITS,
+                                len(payload),
+                                payload
                             )
                         )
 
-                    #TODO:
-                    #recv #!messages N
-                    #loop N times recv message and append
-
                     self._model.last_seen(name)
+
+                    data = self._recv(len("messages ") + CONF.MSGS_MAX_DIGITS)
+                    if data and self._messages_pattern.match(data):
+                        incoming = int(data.split(" ")[1])
+                        for i in range(0, incoming):
+                            data = self._recv(len("message ") + CONF.MSGS_MAX_DIGITS)
+                            if data.startswith("message "):
+                                payload_size = int(data.split(" ")[1])
+                                payload = self._recv(payload_size).split(",", 1)
+                                self._model.save_message(name, payload[0], payload[1])
+                            else:
+                                self._error("bad_message")
+                    else:
+                        self._error("bad_messages")
 
                     self._close()
                 else:
