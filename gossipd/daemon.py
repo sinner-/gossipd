@@ -12,7 +12,7 @@ class Daemon(object):
     """ Gossip
     """
 
-    _db = None
+    _model = None
     _hello_pattern = None
     _messages_pattern = None
     _sock = None
