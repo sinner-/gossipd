@@ -4,4 +4,9 @@
 def encrypt(name, challenge):
     """ encrypt
     """
-    return name+challenge
+    return challenge
+
+def decrypt(name, challenge):
+    """ decrypt
+    """
+    return challenge

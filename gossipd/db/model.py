@@ -27,6 +27,16 @@ class Model(object):
             return True
         return False
 
+    def get_peers(self):
+        """ get_peers
+        """
+
+        cursor = self._db.get_cursor()
+        return cursor.execute("""
+            SELECT name, key, my_key, host, port
+            FROM peers
+        """).fetchall()
+
     def get_messages(self, name):
         """ get_messages
         """

@@ -99,21 +99,6 @@ class Daemon(object):
                         )
 
                     self._model.last_seen(name)
-
-                    data = self._recv(len("messages ") + CONF.MSGS_MAX_DIGITS)
-                    if data and self._messages_pattern.match(data):
-                        incoming = int(data.split(" ")[1])
-                        for i in range(0, incoming):
-                            data = self._recv(len("message ") + CONF.MSGS_MAX_DIGITS)
-                            if data.startswith("message "):
-                                payload_size = int(data.split(" ")[1])
-                                payload = self._recv(payload_size).split(",", 1)
-                                self._model.save_message(name, payload[0], payload[1])
-                            else:
-                                self._error("bad_message")
-                    else:
-                        self._error("bad_messages")
-
                     self._close()
                 else:
                     self._error("bad_otp")
