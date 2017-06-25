@@ -6,8 +6,8 @@ import hashlib
 import re
 from gossipd.process.network import Socket
 from gossipd.util.gpg import encrypt
+from gossipd.util.config import CONF
 from gossipd.db.model import Model
-from gossipd.config import CONF
 
 class Daemon(Socket):
     """ Gossip

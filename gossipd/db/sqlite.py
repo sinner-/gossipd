@@ -1,7 +1,7 @@
 """ gossipd
 """
 import sqlite3
-from gossipd.config import CONF
+from gossipd.util.config import CONF
 
 class DB(object):
     """ DB

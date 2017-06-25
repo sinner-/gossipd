@@ -5,8 +5,8 @@ import random
 import re
 import time
 from gossipd.util.gpg import decrypt
+from gossipd.util.config import CONF
 from gossipd.db.model import Model
-from gossipd.config import CONF
 from gossipd.process.network import Socket
 
 class Worker(Socket):

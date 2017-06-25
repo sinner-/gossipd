@@ -1,6 +1,6 @@
 """ gossipd
 """
-from gossipd.config import CONF
+from gossipd.util.config import CONF
 
 class Socket(object):
     """ Socket
