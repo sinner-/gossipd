@@ -1,0 +1,4 @@
+export GOSSIPD_DB_PATH='/tmp/sina.db'
+export GOSSIPD_LISTEN_IP='127.0.0.1'
+export GOSSIPD_LISTEN_PORT=5555
+export GOSSIPD_USERNAME=sina
