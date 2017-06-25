@@ -7,13 +7,13 @@ import time
 from gossipd.util.gpg import decrypt
 from gossipd.db.model import Model
 from gossipd.config import CONF
+from gossipd.process.network import Socket
 
-class Worker(object):
+class Worker(Socket):
     """ Gossip
     """
 
     _model = None
-    _sock = None
     _name = None
     _challenge_pattern = None
     _messages_pattern = None
@@ -27,31 +27,6 @@ class Worker(object):
         self._challenge_pattern = re.compile("(challenge [a-z0-9]{64})$")
         self._messages_pattern = re.compile("messages [0-9]{%d}" % CONF.MSGS_MAX_DIGITS)
         self._message_pattern = re.compile("message [a-zA-Z0-9_]+,.+$")
-
-    def _send(self, message):
-        if self._sock:
-            self._sock.sendall(
-                bytes(
-                    "%0*d%s" % (
-                        CONF.MSGS_MAX_DIGITS,
-                        len(message),
-                        message
-                    ),
-                    'ascii'
-                )
-            )
-
-    def _recv(self):
-        if self._sock:
-            data = bytes('', 'ascii')
-            payload_size = int(self._sock.recv(CONF.MSGS_MAX_DIGITS))
-            while len(data) < payload_size:
-                packet = self._sock.recv(payload_size - len(data))
-                if not packet:
-                    return None
-                data += packet
-            return data.decode()
-        return None
 
     def _get_all_messages(self):
         peers = self._model.get_peers()
@@ -102,4 +77,5 @@ class Worker(object):
                 #bogus challenges
                 pass
             else:
-                time.sleep(CONF.CLIENT_INTERVAL)
+                time.sleep(1)
+                #time.sleep(CONF.CLIENT_INTERVAL)

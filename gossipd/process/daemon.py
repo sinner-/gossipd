@@ -4,18 +4,18 @@ import socket
 import random
 import hashlib
 import re
+from gossipd.process.network import Socket
 from gossipd.util.gpg import encrypt
 from gossipd.db.model import Model
 from gossipd.config import CONF
 
-class Daemon(object):
+class Daemon(Socket):
     """ Gossip
     """
 
     _model = None
     _hello_pattern = None
-    _sock = None
-    _conn = None
+    _server = None
 
     def __init__(self):
         random.seed()
@@ -24,52 +24,17 @@ class Daemon(object):
 
         self._hello_pattern = re.compile("(hello [a-zA-Z0-9_]+)$")
 
-        self._sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self._sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self._sock.bind((CONF.listen_ip, CONF.listen_port))
-        self._sock.listen(CONF.SOCKET_BACKLOG)
-
-    def _send(self, message):
-        if self._conn:
-            self._conn.sendall(
-                bytes(
-                    "%0*d%s" % (
-                        CONF.MSGS_MAX_DIGITS,
-                        len(message),
-                        message
-                    ),
-                    'ascii'
-                )
-            )
-
-    def _recv(self):
-        if self._conn:
-            data = bytes('', 'ascii')
-            payload_size = int(self._conn.recv(CONF.MSGS_MAX_DIGITS))
-            while len(data) < payload_size:
-                packet = self._conn.recv(payload_size - len(data))
-                if not packet:
-                    return None
-                data += packet
-            return data.decode()
-        return None
-
-    def _close(self):
-        if self._conn:
-            self._conn.shutdown(1)
-            self._conn.close()
-            self._conn = None
-
-    def _error(self, message):
-        self._send(message)
-        self._close()
+        self._server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self._server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self._server.bind((CONF.listen_ip, CONF.listen_port))
+        self._server.listen(CONF.SOCKET_BACKLOG)
 
     def start(self):
         """ start
         """
 
         while True:
-            self._conn, _ = self._sock.accept()
+            self._sock, _ = self._server.accept()
 
             data = self._recv()
 

@@ -1,8 +1,8 @@
 """ gossipd
 """
 from multiprocessing import Process
-from gossipd.daemon import Daemon
-from gossipd.worker import Worker
+from gossipd.process.daemon import Daemon
+from gossipd.process.worker import Worker
 
 def worker_process():
     """ worker
