@@ -4,9 +4,9 @@ import socket
 import random
 import hashlib
 import re
-from util.gpg import encrypt
-from db.model import Model
-from config import CONF
+from gossipd.util.gpg import encrypt
+from gossipd.db.model import Model
+from gossipd.config import CONF
 
 class Daemon(object):
     """ Gossip
@@ -44,7 +44,7 @@ class Daemon(object):
 
     def _recv(self):
         if self._conn:
-            data = ''
+            data = bytes('', 'ascii')
             payload_size = int(self._conn.recv(CONF.MSGS_MAX_DIGITS))
             while len(data) < payload_size:
                 packet = self._conn.recv(payload_size - len(data))
@@ -76,14 +76,14 @@ class Daemon(object):
             if data and self._hello_pattern.match(data):
                 name = data.split(" ")[1]
 
-                if self._model.check_peer(name):
+                if not self._model.check_peer(name):
                     self._error("unknown_peer")
                     continue
 
                 challenge = hashlib.sha256(
                     str(
                         random.randint(CONF.OTP_RANGE_START, CONF.OTP_RANGE_END)
-                    )
+                    ).encode('ascii')
                 ).hexdigest()
 
                 self._send("challenge %s" % encrypt(name, challenge))
@@ -105,3 +105,5 @@ class Daemon(object):
                     self._close()
                 else:
                     self._error("bad_otp")
+            else:
+                self._error("bad_hello")

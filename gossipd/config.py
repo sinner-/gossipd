@@ -1,6 +1,6 @@
 """ gossipd
 """
-import sys
+import os
 
 class Configuration(object):
     """ Configuration
@@ -12,17 +12,27 @@ class Configuration(object):
     OTP_RANGE_END = 2**129
     MSGS_MAX_DIGITS = 4
     CHALLENGE_HASH_LEN = 64
+    CLIENT_INTERVAL = 5
 
-    db_path = "gossipd.db"
+    try:
+        db_path = os.environ['GOSSIPD_DB_PATH']
+    except KeyError:
+        db_path = "gossipd.db"
 
-    listen_ip = "0.0.0.0"
-    listen_port = 5555
+    try:
+        listen_ip = os.environ['GOSSIPD_LISTEN_IP']
+    except KeyError:
+        listen_ip = "127.0.0.1"
 
-    if sys.argv[1]:
-        name = sys.argv[1]
-    else:
-        print("Must invoke the program with a name.")
-        exit()
+    try:
+        listen_port = int(os.environ['GOSSIPD_LISTEN_PORT'])
+    except KeyError:
+        listen_port = 5555
 
+    try:
+        name = os.environ['GOSSIPD_USERNAME']
+    except KeyError:
+        print("You must define GOSSIPD_USERNAME environment variable.")
+        exit(1)
 
 CONF = Configuration()

@@ -1,6 +1,6 @@
 """ gossipd
 """
-from db.sqlite import DB
+from gossipd.db.sqlite import DB
 
 class Model(object):
     """ Model
@@ -43,7 +43,7 @@ class Model(object):
 
         cursor = self._db.get_cursor()
         messages = cursor.execute("""
-            SELECT from, text
+            SELECT sender, message
             FROM messages
             WHERE timestamp > (
                 SELECT last_seen
@@ -62,7 +62,7 @@ class Model(object):
         cursor = self._db.get_cursor()
         cursor.execute("""
             UPDATE peers
-            SET last_seen = NOW()
+            SET last_seen = datetime('now')
             WHERE name = ?
         """, (name,))
         self._db.commit()
@@ -75,7 +75,7 @@ class Model(object):
         cursor = self._db.get_cursor()
         cursor.execute("""
             INSERT INTO messages
-            VALUES (NOW(), ?, ?, ?)
+            VALUES (datetime('now'), ?, ?, ?)
         """, (name, peer, message))
         self._db.commit()
         cursor.close()
