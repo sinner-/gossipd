@@ -37,7 +37,7 @@ class Worker(Socket):
         try:
             self._sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self._sock.connect((peer[3], peer[4]))
-        except ConnectionRefusedError:
+        except socket.error:
             print("Couldn't connect to peer %s @ %s:%d" % (peer[0], peer[3], peer[4]))
             return
 
