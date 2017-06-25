@@ -14,7 +14,6 @@ class Daemon(object):
 
     _model = None
     _hello_pattern = None
-    _messages_pattern = None
     _sock = None
     _conn = None
 
@@ -24,7 +23,6 @@ class Daemon(object):
         self._model = Model()
 
         self._hello_pattern = re.compile("(hello [a-zA-Z0-9_]+)$")
-        self._messages_pattern = re.compile("messages [0-9]{%d}" % CONF.MSGS_MAX_DIGITS)
 
         self._sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self._sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -33,13 +31,27 @@ class Daemon(object):
 
     def _send(self, message):
         if self._conn:
-            self._conn.send(bytes("%s\n" % message, 'ascii'))
+            self._conn.sendall(
+                bytes(
+                    "%0*d%s" % (
+                        CONF.MSGS_MAX_DIGITS,
+                        len(message),
+                        message
+                    ),
+                    'ascii'
+                )
+            )
 
-    def _recv(self, payload_size):
+    def _recv(self):
         if self._conn:
-            data = self._conn.recv(payload_size + 1)
-            if data:
-                return data.decode().strip()
+            data = ''
+            payload_size = int(self._conn.recv(CONF.MSGS_MAX_DIGITS))
+            while len(data) < payload_size:
+                packet = self._conn.recv(payload_size - len(data))
+                if not packet:
+                    return None
+                data += packet
+            return data.decode()
         return None
 
     def _close(self):
@@ -59,12 +71,10 @@ class Daemon(object):
         while True:
             self._conn, _ = self._sock.accept()
 
-            data = self._recv(len("hello ") + CONF.MAX_NAME_LEN)
+            data = self._recv()
 
             if data and self._hello_pattern.match(data):
-                hello = data.split(" ")
-
-                name = hello[1].strip()
+                name = data.split(" ")[1]
 
                 if self._model.check_peer(name):
                     self._error("unknown_peer")
@@ -78,23 +88,16 @@ class Daemon(object):
 
                 self._send("challenge %s" % encrypt(name, challenge))
 
-                response = self._recv(len("response ") + len(challenge))
+                response = self._recv()
 
-                if response and response == "response %s" % challenge:
+                if response == "response %s" % challenge:
                     messages = self._model.get_messages(name)
                     self._send("messages %0*d" % (CONF.MSGS_MAX_DIGITS, len(messages)))
                     for message in messages:
-                        payload = (
-                            "%s,%s" % (
-                                message[0],
-                                message[1],
-                            )
-                        )
                         self._send(
-                            "message %0*d %s" % (
-                                CONF.MSGS_MAX_DIGITS,
-                                len(payload),
-                                payload
+                            "message %s,%s" % (
+                                message[0],
+                                message[1]
                             )
                         )
 
