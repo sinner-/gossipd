@@ -64,10 +64,15 @@ def main():
             exit(1)
 
         model = Model()
-        model.save_peer(args.name, args.host, args.port)
-        exchange_key = rsa.Key(model.assign_peer(args.name)).public.as_string()
-        print("Exchange key:")
-        print(exchange_key)
+        keytext = model.assign_peer(args.name)
+        if keytext:
+            exchange_key = rsa.Key(keytext).public.as_string()
+            model.save_peer(args.name, args.host, args.port)
+            print("Exchange key:")
+            print(exchange_key)
+        else:
+            print("No RSA keys available for assignment.")
+            exit(1)
         exit(0)
 
     if args.set_peer_key:

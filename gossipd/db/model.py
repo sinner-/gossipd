@@ -111,30 +111,6 @@ class Model(object):
         self._db.commit()
         cursor.close()
 
-    def assign_peer(self, name):
-        """ assign_peer
-        """
-
-        cursor = self._db.get_cursor()
-        cursor.execute("""
-            UPDATE keys
-            SET peer = ?
-            WHERE key = (
-                SELECT key
-                FROM keys
-                WHERE peer = '_available'
-                LIMIT 1
-            )
-        """, (name,))
-        self._db.commit()
-        exchange_key = cursor.execute("""
-            SELECT key
-            FROM keys
-            WHERE peer = ?
-        """, (name,)).fetchone()[0]
-        cursor.close()
-        return exchange_key
-
     def get_messages(self, name):
         """ get_messages
         """
@@ -202,3 +178,41 @@ class Model(object):
         """, (name,)).fetchone()[0]
         cursor.close()
         return key
+
+    def assign_peer(self, name):
+        """ assign_peer
+        """
+
+        cursor = self._db.get_cursor()
+
+        #we only want one key per peer
+        cursor.execute("""
+            UPDATE keys
+            SET peer = '_bogus'
+            WHERE peer = ?
+        """, (name,))
+        if cursor.rowcount() > 0:
+            self._db.commit()
+
+        cursor.execute("""
+            UPDATE keys
+            SET peer = ?
+            WHERE key = (
+                SELECT key
+                FROM keys
+                WHERE peer = '_available'
+                LIMIT 1
+            )
+        """, (name,))
+
+        exchange_key = None
+        if cursor.rowcount() > 0:
+            self._db.commit()
+            exchange_key = cursor.execute("""
+                SELECT key
+                FROM keys
+                WHERE peer = ?
+            """, (name,)).fetchone()[0]
+        cursor.close()
+        return exchange_key
+
