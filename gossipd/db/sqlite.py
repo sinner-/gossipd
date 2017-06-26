@@ -20,7 +20,7 @@ class DB(object):
             );''' % CONF.MAX_NAME_LEN)
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS peers (
-                name VARCHAR(%d),
+                name VARCHAR(%d) PRIMARY KEY,
                 public_key TEXT,
                 host VARCHAR(255),
                 port INT,
