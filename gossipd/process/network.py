@@ -28,6 +28,7 @@ class Socket(object):
                 payload_size = int(self._sock.recv(CONF.MSGS_MAX_DIGITS))
             except ValueError:
                 self._error("error_expecting_response")
+                return None
             while len(data) < payload_size:
                 packet = self._sock.recv(payload_size - len(data))
                 if not packet:

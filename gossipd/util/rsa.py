@@ -21,8 +21,11 @@ def decrypt(keytext, challenge):
 
     key = rsa.Key(keytext)
 
-    return key.decrypt(
-        base64.b64decode(
-            challenge
-        )
-    ).decode()
+    try:
+        return key.decrypt(
+            base64.b64decode(
+                challenge
+            )
+        ).decode()
+    except:
+        return None

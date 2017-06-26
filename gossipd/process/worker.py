@@ -45,22 +45,27 @@ class Worker(Socket):
 
         self._send("hello %s" % self._name)
         data = self._recv()
-        if self._challenge_pattern.match(data):
+        if data and self._challenge_pattern.match(data):
             peer_key = self._model.get_key(peer[0])
             challenge = decrypt(peer_key, data.split(" ", 1)[1])
-            self._send("response %s" % challenge)
+            if challenge:
+                self._send("response %s" % challenge)
+                data = self._recv()
+                if data and self._messages_pattern.match(data):
+                    incoming = int(data.split(" ")[1])
 
-            data = self._recv()
-            if data and self._messages_pattern.match(data):
-                incoming = int(data.split(" ")[1])
-
-                for _ in range(incoming):
-                    data = self._recv()
-                    if self._message_pattern.match(data):
-                        message = data.split(",", 1)
-                        self._model.save_message(self._name,
-                                                 message[0].split(" ")[1],
-                                                 message[1])
+                    for _ in range(incoming):
+                        data = self._recv()
+                        if data and self._message_pattern.match(data):
+                            message = data.split(",", 1)
+                            self._model.save_message(self._name,
+                                                     message[0].split(" ")[1],
+                                                     message[1])
+                        else:
+                            self._error("bad_message")
+                            break
+                else:
+                    self._error("bad_challenge")
             else:
                 self._error("bad_messages")
         else:
