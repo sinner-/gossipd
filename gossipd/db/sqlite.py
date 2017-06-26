@@ -1,5 +1,6 @@
 """ gossipd
 """
+from __future__ import absolute_import
 import sqlite3
 from gossipd.util.config import CONF
 
@@ -14,15 +15,13 @@ class DB(object):
         cursor = self._conn.cursor()
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS keys (
-                name VARCHAR(%d),
-                public_key TEXT,
-                private_key TEXT
+                peer VARCHAR(%d),
+                key TEXT
             );''' % CONF.MAX_NAME_LEN)
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS peers (
                 name VARCHAR(%d),
-                key TEXT,
-                my_key TEXT,
+                public_key TEXT,
                 host VARCHAR(255),
                 port INT,
                 last_seen DATETIME

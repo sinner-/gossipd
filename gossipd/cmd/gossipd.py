@@ -1,5 +1,6 @@
 """ gossipd
 """
+from __future__ import absolute_import
 from multiprocessing import Process
 from gossipd.process.daemon import Daemon
 from gossipd.process.worker import Worker

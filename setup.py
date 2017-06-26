@@ -10,8 +10,13 @@ setup(
     author='Sina Sadeghi',
     description='G',
     packages=find_packages(),
+    install_requires=[
+        'PyTomCrypt>=0.10.1'
+    ],
     entry_points={
         'console_scripts': [
-            'gossipd = gossipd.cmd.cli:main',
-        ]},
+            'gossipd = gossipd.cmd.gossipd:main',
+            'gossipc = gossipd.cmd.gossipc:main',
+        ]
+    }
 )

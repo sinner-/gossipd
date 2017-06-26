@@ -13,6 +13,8 @@ class Configuration(object):
     MSGS_MAX_DIGITS = 4
     CHALLENGE_HASH_LEN = 64
     CLIENT_INTERVAL = 5
+    RSA_KEY_SIZE = 1024
+    BOGUS_KEY_PCT = 30
 
     try:
         db_path = os.environ['GOSSIPD_DB_PATH']

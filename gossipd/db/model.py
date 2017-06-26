@@ -1,5 +1,6 @@
 """ gossipd
 """
+from __future__ import absolute_import
 from gossipd.db.sqlite import DB
 
 class Model(object):
@@ -32,10 +33,107 @@ class Model(object):
         """
 
         cursor = self._db.get_cursor()
-        return cursor.execute("""
-            SELECT name, key, my_key, host, port
+        peers = cursor.execute("""
+            SELECT name, public_key, host, port
             FROM peers
+            WHERE public_key IS NOT NULL
         """).fetchall()
+        cursor.close()
+        return peers
+
+    def get_peer_key(self, name):
+        """ get_peer_key
+        """
+
+        cursor = self._db.get_cursor()
+        peer_key = cursor.execute("""
+            SELECT public_key
+            FROM peers
+            WHERE name = ?
+            LIMIT 1
+        """, (name,)).fetchone()[0]
+        cursor.close()
+        return peer_key
+
+    def save_peer(self, name, host, port):
+        """ save_peer
+        """
+
+        cursor = self._db.get_cursor()
+        cursor.execute("""
+            INSERT INTO peers
+            VALUES (
+                ?, NULL, ?, ?, datetime('now')
+            )
+        """, (name, host, port))
+        cursor.close()
+
+    def delete_peer(self, name):
+        """ delete_peer
+        """
+
+        cursor = self._db.get_cursor()
+        cursor.execute("""
+            UPDATE keys
+            SET name = '_bogus'
+            WHERE name = ?
+        """, (name,))
+        cursor.execute("""
+            DELETE FROM peers
+            WHERE name = ?
+        """, (name,))
+        self._db.commit()
+        cursor.close()
+
+    def last_seen(self, name):
+        """ last_seen
+        """
+
+        cursor = self._db.get_cursor()
+        cursor.execute("""
+            UPDATE peers
+            SET last_seen = datetime('now')
+            WHERE name = ?
+        """, (name,))
+        self._db.commit()
+        cursor.close()
+
+    def set_peer_key(self, name, keyfile):
+        """ set_peer_key
+        """
+
+        cursor = self._db.get_cursor()
+        cursor.execute("""
+            UPDATE peers
+            SET public_key = ?
+            WHERE name = ?
+        """, (keyfile, name))
+        self._db.commit()
+        cursor.close()
+
+    def assign_peer(self, name):
+        """ assign_peer
+        """
+
+        cursor = self._db.get_cursor()
+        cursor.execute("""
+            UPDATE keys
+            SET peer = ?
+            WHERE key = (
+                SELECT key
+                FROM keys
+                WHERE peer = '_available'
+                LIMIT 1
+            )
+        """, (name,))
+        self._db.commit()
+        exchange_key = cursor.execute("""
+            SELECT key
+            FROM keys
+            WHERE peer = ?
+        """, (name,)).fetchone()[0]
+        cursor.close()
+        return exchange_key
 
     def get_messages(self, name):
         """ get_messages
@@ -55,18 +153,17 @@ class Model(object):
         cursor.close()
         return messages
 
-    def last_seen(self, name):
-        """ last_seen
+    def view_messages(self):
+        """ view_messages
         """
 
         cursor = self._db.get_cursor()
-        cursor.execute("""
-            UPDATE peers
-            SET last_seen = datetime('now')
-            WHERE name = ?
-        """, (name,))
-        self._db.commit()
+        messages = cursor.execute("""
+            SELECT sender, message
+            FROM messages
+        """).fetchall()
         cursor.close()
+        return messages
 
     def save_message(self, peer, name, message):
         """ save_messages
@@ -79,3 +176,29 @@ class Model(object):
         """, (name, peer, message))
         self._db.commit()
         cursor.close()
+
+    def save_key(self, name, key):
+        """ save_key
+        """
+
+        cursor = self._db.get_cursor()
+        cursor.execute("""
+            INSERT INTO keys
+            VALUES (?, ?)
+        """, (name, key))
+        self._db.commit()
+        cursor.close()
+
+    def get_key(self, name):
+        """ get_key
+        """
+
+        cursor = self._db.get_cursor()
+        key = cursor.execute("""
+            SELECT key
+            FROM keys
+            WHERE peer = ?
+            LIMIT 1
+        """, (name,)).fetchone()[0]
+        cursor.close()
+        return key

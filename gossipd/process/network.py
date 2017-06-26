@@ -1,5 +1,6 @@
 """ gossipd
 """
+from __future__ import absolute_import
 from gossipd.util.config import CONF
 
 class Socket(object):
@@ -10,24 +11,29 @@ class Socket(object):
 
     def _send(self, message):
         if self._sock:
-            self._sock.sendall(
+            payload = (
                 ("%0*d%s" % (
                     CONF.MSGS_MAX_DIGITS,
                     len(message),
                     message
                 )).encode('ascii')
             )
+            print("SEND: %s" % payload.decode())
+            self._sock.sendall(payload)
 
     def _recv(self):
         if self._sock:
             data = ''.encode('ascii')
-            payload_size = int(self._sock.recv(CONF.MSGS_MAX_DIGITS))
+            try:
+                payload_size = int(self._sock.recv(CONF.MSGS_MAX_DIGITS))
+            except ValueError:
+                self._error("error_expecting_response")
             while len(data) < payload_size:
                 packet = self._sock.recv(payload_size - len(data))
                 if not packet:
                     return None
                 data += packet
-            print(data.decode())
+            print("RECV: %s" % data.decode())
             return data.decode()
         return None
 
