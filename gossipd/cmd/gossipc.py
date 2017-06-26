@@ -100,11 +100,18 @@ def main():
             print("You must call --send-message with source and message.")
             exit(1)
         model = Model()
-        model.save_message('self', args.source, args.message)
+        model.save_message(args.source, 'self', args.message)
         exit(0)
 
     if args.view_messages:
         model = Model()
         for message in model.view_messages():
-            print(message)
+            print(
+                "%s|delivered_by:%s|sender:%s|%s" % (
+                    message[0],
+                    message[1],
+                    message[2],
+                    message[3]
+                )
+            )
         exit(0)

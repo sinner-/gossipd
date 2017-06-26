@@ -58,8 +58,8 @@ class Worker(Socket):
                         data = self._recv()
                         if data and self._message_pattern.match(data):
                             message = data.split(",", 1)
-                            self._model.save_message(self._name,
-                                                     message[0].split(" ")[1],
+                            self._model.save_message(message[0].split(" ")[1],
+                                                     peer[0],
                                                      message[1])
                         else:
                             self._error("bad_message")
@@ -80,7 +80,7 @@ class Worker(Socket):
 
         while True:
             try:
-                action = random.randint(1, 10)
+                action = random.randint(1, 5)
                 if action == 1:
                     print("Fetching messages from peers.")
                     self._get_all_messages()

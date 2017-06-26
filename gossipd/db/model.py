@@ -119,13 +119,14 @@ class Model(object):
         messages = cursor.execute("""
             SELECT sender, message
             FROM messages
-            WHERE timestamp > (
+            WHERE delivered_by != ?
+            AND timestamp > (
                 SELECT last_seen
                 FROM peers
                 WHERE name = ?
                 LIMIT 1
             )
-        """, (name,)).fetchall()
+        """, (name, name,)).fetchall()
         cursor.close()
         return messages
 
@@ -135,13 +136,13 @@ class Model(object):
 
         cursor = self._db.get_cursor()
         messages = cursor.execute("""
-            SELECT sender, message
+            SELECT timestamp, delivered_by, sender, message
             FROM messages
         """).fetchall()
         cursor.close()
         return messages
 
-    def save_message(self, peer, name, message):
+    def save_message(self, sender, delivered_by, message):
         """ save_messages
         """
 
@@ -149,7 +150,7 @@ class Model(object):
         cursor.execute("""
             INSERT INTO messages
             VALUES (datetime('now'), ?, ?, ?)
-        """, (name, peer, message))
+        """, (sender, delivered_by, message))
         self._db.commit()
         cursor.close()
 
