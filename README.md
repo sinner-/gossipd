@@ -119,3 +119,8 @@ There is currently no restriction on message size or who you claim to be when yo
 `gossipc --view-messages`
 
 You can view all the messages gossipc has stored with this command.
+```
+$ gossipc -g
+2017-06-26 14:18:55|delivered_by:node1|sender:poophead|wassuppppppp
+2017-06-26 14:18:55|delivered_by:node1|sender:alice|omg how much
+```
