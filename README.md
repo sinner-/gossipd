@@ -36,7 +36,9 @@ export GOSSIPD_USERNAME=sina
 
 You can run multiple gossipd instances on the same host as long as the `GOSSIPD_DB_PATH`, `GOSSIPD_LISTEN_PORT` and `GOSSIPD_USERNAME` are unique for each instance.
 
-`gossipd` runs two independent processes, a daemon and a worker. The daemon listens for incoming connections from other `gossipd` peers and the worker runs an action loop of the following tasks:
+`gossipd` runs two independent processes, a daemon and a worker.
+
+The daemon listens for incoming connections from other `gossipd` peers and the worker runs an action loop of the following tasks:
  * Fetch messages from peers in peer list.
  * Generate RSA keys (marking some as bogus).
  * NOT IMPLEMENTED YET: Send bogus challenge strings to peers.
@@ -89,6 +91,7 @@ optional arguments:
 
 #### Add a peer
 `gossipc --add-peer --name alice --host 100.100.100.100 --port 5555`
+
 When you add a peer to the peer list, `gossipc` will also assign one of the unused and available RSA keypairs for communication with that peer and then present the public key for you to provide to that peer. 
 e.g.
 ```
@@ -104,12 +107,15 @@ The peer will run a similar command and be furnished with a public key that they
 
 #### Set peer key
 `gossipc --set-peer-key --name alice --pubkey-file /tmp/alice.pub`
+
 When a peer has added you to their peer list, they will need to provide you with a public key before `gossipd` will attempt to fetch messages from them. You can write the public key block to a temporary file and read it in.
 
 #### Broadcast messages
 `gossipc --send-message --source bob --message "hello world"`
+
 There is currently no restriction on message size or who you claim to be when you send a message.
 
 ### View messages
 `gossipc --view-messages`
+
 You can view all the messages gossipc has stored with this command.
