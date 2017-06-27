@@ -21,6 +21,7 @@ class Model(object):
             SELECT COUNT(name)
             FROM peers
             WHERE name = ?
+            AND public_key IS NOT NULL
             LIMIT 1
         """, (name,)).fetchone()[0]
         cursor.close()
@@ -50,6 +51,7 @@ class Model(object):
             SELECT public_key
             FROM peers
             WHERE name = ?
+            AND public_key IS NOT NULL
             LIMIT 1
         """, (name,)).fetchone()[0]
         cursor.close()
@@ -124,6 +126,7 @@ class Model(object):
                 SELECT last_seen
                 FROM peers
                 WHERE name = ?
+                AND public_key IS NOT NULL
                 LIMIT 1
             )
         """, (name, name,)).fetchall()
@@ -216,4 +219,3 @@ class Model(object):
             """, (name,)).fetchone()[0]
         cursor.close()
         return exchange_key
-
