@@ -43,19 +43,20 @@ class Worker(Socket):
             print("Couldn't connect to peer %s @ %s:%d" % (peer[0], peer[2], peer[3]))
             return
 
+        peer_key = self._model.get_peer_key(peer[0])
+        priv_key = self._model.get_key(peer[0])
         self._send("hello %s" % self._name)
         data = self._recv()
         if data and self._challenge_pattern.match(data):
-            peer_key = self._model.get_key(peer[0])
-            challenge = decrypt(peer_key, data.split(" ", 1)[1])
+            challenge = decrypt(priv_key, data.split(" ", 1)[1])
             if challenge:
-                self._send("response %s" % challenge)
-                data = self._recv()
+                self._ssend(peer_key, "response %s" % challenge)
+                data = self._srecv(priv_key)
                 if data and self._messages_pattern.match(data):
                     incoming = int(data.split(" ")[1])
 
                     for _ in range(incoming):
-                        data = self._recv()
+                        data = self._srecv(priv_key)
                         if data and self._message_pattern.match(data):
                             message = data.split(",", 1)
                             self._model.save_message(message[0].split(" ")[1],

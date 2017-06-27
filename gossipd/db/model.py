@@ -68,6 +68,7 @@ class Model(object):
                 ?, NULL, ?, ?, datetime('now')
             )
         """, (name, host, port))
+        self._db.commit()
         cursor.close()
 
     def delete_peer(self, name):
@@ -80,6 +81,7 @@ class Model(object):
             SET name = '_bogus'
             WHERE name = ?
         """, (name,))
+        self._db.commit()
         cursor.execute("""
             DELETE FROM peers
             WHERE name = ?
@@ -195,7 +197,7 @@ class Model(object):
             SET peer = '_bogus'
             WHERE peer = ?
         """, (name,))
-        if cursor.rowcount() > 0:
+        if cursor.rowcount > 0:
             self._db.commit()
 
         cursor.execute("""
@@ -210,7 +212,7 @@ class Model(object):
         """, (name,))
 
         exchange_key = None
-        if cursor.rowcount() > 0:
+        if cursor.rowcount > 0:
             self._db.commit()
             exchange_key = cursor.execute("""
                 SELECT key

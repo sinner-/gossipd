@@ -58,15 +58,15 @@ class Daemon(Socket):
                     ).hexdigest()
 
                     peer_key = self._model.get_peer_key(name)
+                    priv_key = self._model.get_key(name)
                     self._send("challenge %s" % encrypt(peer_key, challenge))
-
-                    response = self._recv()
+                    response = self._srecv(priv_key)
 
                     if response == "response %s" % challenge:
                         messages = self._model.get_messages(name)
-                        self._send("messages %0*d" % (CONF.MSGS_MAX_DIGITS, len(messages)))
+                        self._ssend(peer_key, "messages %0*d" % (CONF.MSGS_MAX_DIGITS, len(messages)))
                         for message in messages:
-                            self._send(
+                            self._ssend(peer_key,
                                 "message %s,%s" % (
                                     message[0],
                                     message[1]

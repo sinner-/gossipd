@@ -3,19 +3,21 @@
 import base64
 from tomcrypt import rsa
 
-def encrypt(keytext, challenge):
+def encrypt(keytext, message):
     """ encrypt
     """
 
     pubkey = rsa.Key(keytext)
+    if len(message) < pubkey.max_payload():
+        return base64.b64encode(
+            pubkey.encrypt(
+                message.encode('ascii')
+            )
+        ).decode()
+    else:
+        return None
 
-    return base64.b64encode(
-        pubkey.encrypt(
-            challenge.encode('ascii')
-        )
-    ).decode()
-
-def decrypt(keytext, challenge):
+def decrypt(keytext, message):
     """ decrypt
     """
 
@@ -24,7 +26,7 @@ def decrypt(keytext, challenge):
     try:
         return key.decrypt(
             base64.b64decode(
-                challenge
+                message
             )
         ).decode()
     except:
