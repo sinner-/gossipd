@@ -12,23 +12,6 @@ class Model(object):
     def __init__(self):
         self._db = DB()
 
-    def check_peer(self, name):
-        """ check_peer
-        """
-
-        cursor = self._db.get_cursor()
-        result = cursor.execute("""
-            SELECT COUNT(name)
-            FROM peers
-            WHERE name = ?
-            AND public_key IS NOT NULL
-            LIMIT 1
-        """, (name,)).fetchone()[0]
-        cursor.close()
-        if result > 0:
-            return True
-        return False
-
     def get_peers(self):
         """ get_peers
         """
@@ -41,21 +24,6 @@ class Model(object):
         """).fetchall()
         cursor.close()
         return peers
-
-    def get_peer_key(self, name):
-        """ get_peer_key
-        """
-
-        cursor = self._db.get_cursor()
-        peer_key = cursor.execute("""
-            SELECT public_key
-            FROM peers
-            WHERE name = ?
-            AND public_key IS NOT NULL
-            LIMIT 1
-        """, (name,)).fetchone()[0]
-        cursor.close()
-        return peer_key
 
     def save_peer(self, name, host, port):
         """ save_peer
@@ -171,19 +139,17 @@ class Model(object):
         self._db.commit()
         cursor.close()
 
-    def get_key(self, name):
-        """ get_key
+    def get_keys(self):
+        """ get_keys
         """
 
         cursor = self._db.get_cursor()
-        key = cursor.execute("""
-            SELECT key
+        keys = cursor.execute("""
+            SELECT peer, key
             FROM keys
-            WHERE peer = ?
-            LIMIT 1
-        """, (name,)).fetchone()[0]
+        """).fetchall()
         cursor.close()
-        return key
+        return keys
 
     def assign_peer(self, name):
         """ assign_peer

@@ -13,9 +13,9 @@ def encrypt(keytext, message):
             pubkey.encrypt(
                 message.encode('ascii')
             )
-        ).decode()
-    else:
-        return None
+        )
+
+    return None
 
 def decrypt(keytext, message):
     """ decrypt

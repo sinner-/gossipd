@@ -6,8 +6,8 @@ import random
 import re
 import time
 from tomcrypt import rsa
-from gossipd.util.rsa import decrypt
 from gossipd.util.config import CONF
+from gossipd.util.rsa import encrypt
 from gossipd.db.model import Model
 from gossipd.process.network import Socket
 
@@ -30,12 +30,13 @@ class Worker(Socket):
         self._messages_pattern = re.compile("messages [0-9]{%d}" % CONF.MSGS_MAX_DIGITS)
         self._message_pattern = re.compile("message [a-zA-Z0-9_]+,.+$")
 
-    def _get_all_messages(self):
-        peers = self._model.get_peers()
-        for peer in peers:
-            self._get_messages(peer)
+    def _relay_all_messages(self):
+        for peer in self._model.get_peers():
+            for message in self._model.get_messages(peer[0]):
+                self._relay_message(peer, message)
+            self._model.last_seen(peer[0])
 
-    def _get_messages(self, peer):
+    def _relay_message(self, peer, message):
         try:
             self._sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self._sock.connect((peer[2], peer[3]))
@@ -43,34 +44,15 @@ class Worker(Socket):
             print("Couldn't connect to peer %s @ %s:%d" % (peer[0], peer[2], peer[3]))
             return
 
-        peer_key = self._model.get_peer_key(peer[0])
-        priv_key = self._model.get_key(peer[0])
-        self._send("hello %s" % self._name)
-        data = self._recv()
-        if data and self._challenge_pattern.match(data):
-            challenge = decrypt(priv_key, data.split(" ", 1)[1])
-            if challenge:
-                self._ssend(peer_key, "response %s" % challenge)
-                data = self._srecv(priv_key)
-                if data and self._messages_pattern.match(data):
-                    incoming = int(data.split(" ")[1])
-
-                    for _ in range(incoming):
-                        data = self._srecv(priv_key)
-                        if data and self._message_pattern.match(data):
-                            message = data.split(",", 1)
-                            self._model.save_message(message[0].split(" ")[1],
-                                                     peer[0],
-                                                     message[1])
-                        else:
-                            self._error("bad_message")
-                            break
-                else:
-                    self._error("bad_challenge")
-            else:
-                self._error("bad_messages")
-        else:
-            self._error("bad_challenge")
+        self._send(
+            encrypt(
+                peer[1],
+                "%s,%s" % (
+                    message[0],
+                    message[1]
+                )
+            )
+        )
 
         self._sock.close()
         self._sock = None
@@ -83,8 +65,8 @@ class Worker(Socket):
             try:
                 action = random.randint(1, 5)
                 if action == 1:
-                    print("Fetching messages from peers.")
-                    self._get_all_messages()
+                    print("Relaying messages to peers.")
+                    self._relay_all_messages()
                 elif action == 2:
                     print("Generating an RSA key.")
                     key = rsa.Key(CONF.RSA_KEY_SIZE)

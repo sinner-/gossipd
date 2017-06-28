@@ -1,9 +1,6 @@
 """ gossipd
 """
 from __future__ import absolute_import
-from gossipd.util.rsa import encrypt
-from gossipd.util.rsa import decrypt
-from gossipd.util.config import CONF
 
 class Socket(object):
     """ Socket
@@ -13,44 +10,25 @@ class Socket(object):
 
     def _send(self, message):
         if self._sock:
-            payload = (
-                ("%0*d%s" % (
-                    CONF.MSGS_MAX_DIGITS,
-                    len(message),
-                    message
-                )).encode('ascii')
-            )
-            print("SEND: %s" % payload.decode())
-            self._sock.sendall(payload)
-
-    def _ssend(self, peer_keytext, message):
-        self._send(
-            encrypt(peer_keytext, message)
-        )
+            print("SEND: %s" % message)
+            self._sock.sendall(message)
+            self._sock.send("\n".encode('ascii'))
 
     def _recv(self):
-        if self._sock:
-            data = ''.encode('ascii')
-            header = self._sock.recv(CONF.MSGS_MAX_DIGITS)
-            if header:
-                payload_size = int(header)
-                while len(data) < payload_size:
-                    packet = self._sock.recv(payload_size - len(data))
-                    if not packet:
-                        return None
-                    data += packet
-                print("RECV: %s" % data.decode())
-                return data.decode()
-            else:
-                self._error("bad_header")
-        return None
-
-    def _srecv(self, priv_keytext):
-        payload = self._recv()
-        if payload:
-            return decrypt(priv_keytext, payload)
-        else:
+        if not self._sock:
             return None
+
+        data = ''.encode('ascii')
+        while True:
+            packet = self._sock.recv(512)
+            if not packet:
+                break
+            data += packet
+            if packet[-1] == 10:
+                break
+
+        print("RECV: %s" % data.decode())
+        return data.decode()
 
     def _close(self):
         if self._sock:
