@@ -18,7 +18,6 @@ class Worker(Socket):
     _model = None
     _name = None
     _challenge_pattern = None
-    _messages_pattern = None
     _message_pattern = None
 
     def __init__(self):
@@ -27,7 +26,6 @@ class Worker(Socket):
         self._name = CONF.name
         self._model = Model()
         self._challenge_pattern = re.compile("challenge .+$")
-        self._messages_pattern = re.compile("messages [0-9]{%d}" % CONF.MSGS_MAX_DIGITS)
         self._message_pattern = re.compile("message [a-zA-Z0-9_]+,.+$")
 
     def _relay_all_messages(self):

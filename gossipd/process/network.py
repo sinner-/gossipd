@@ -1,6 +1,7 @@
 """ gossipd
 """
 from __future__ import absolute_import
+from gossipd.util.config import CONF
 
 class Socket(object):
     """ Socket
@@ -20,11 +21,11 @@ class Socket(object):
 
         data = ''.encode('ascii')
         while True:
-            packet = self._sock.recv(512)
+            packet = self._sock.recv(CONF.RECV_BYTES)
             if not packet:
                 break
             data += packet
-            if packet[-1] == 10:
+            if packet[-1] == CONF.NEW_LINE_CHAR:
                 break
 
         print("RECV: %s" % data.decode())
