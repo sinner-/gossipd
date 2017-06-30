@@ -12,8 +12,8 @@ class Configuration(object):
     CLIENT_INTERVAL = 5
     RSA_KEY_SIZE = 4096
     BOGUS_KEY_PCT = 30
-    CONF.RECV_BYTES = 512
-    CONF.NEW_LINE_CHAR = 10
+    RECV_BYTES = 512
+    NEW_LINE_CHAR = 10
 
 
     def __init__(self):
