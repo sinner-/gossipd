@@ -83,6 +83,12 @@ def main():
             print("pubkey-file %s doesn't exist." % args.pubkey_file)
             exit(1)
         with open(args.pubkey_file) as key_file:
+            keytext = key_file.read()
+            try:
+                rsa.Key(keytext)
+            except:
+                print("Public key format error.")
+                exit(1)
             model = Model()
             model.set_peer_key(args.name, key_file.read())
         exit(0)

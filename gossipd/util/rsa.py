@@ -7,7 +7,12 @@ def encrypt(keytext, message):
     """ encrypt
     """
 
-    pubkey = rsa.Key(keytext)
+    try:
+        pubkey = rsa.Key(keytext)
+    except:
+        print("Public key format error.")
+        return None
+
     if len(message) < pubkey.max_payload():
         return base64.b64encode(
             pubkey.encrypt(
@@ -21,7 +26,11 @@ def decrypt(keytext, message):
     """ decrypt
     """
 
-    key = rsa.Key(keytext)
+    try:
+        key = rsa.Key(keytext)
+    except:
+        print("Private key format error.")
+        return None
 
     try:
         return key.decrypt(
