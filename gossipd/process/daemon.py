@@ -21,7 +21,7 @@ class Daemon(Socket):
         self._model = Model()
 
         self._ascii_pattern = re.compile("[\x00-\x7F]+$")
-        self._payload_pattern = re.compile("[a-zA-Z0-9_]+,.+$")
+        self._payload_pattern = re.compile("[a-zA-Z0-9_]+,[\x00-\x7F]+$")
 
         self._server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self._server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)

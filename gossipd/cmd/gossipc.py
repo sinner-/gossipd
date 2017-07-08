@@ -106,7 +106,7 @@ def main():
             print("You must call --send-message with source and message.")
             exit(1)
         model = Model()
-        model.save_message(args.source, 'self', args.message)
+        model.save_message(args.source, '*local', args.message)
         exit(0)
 
     if args.view_messages:
