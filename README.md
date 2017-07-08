@@ -28,13 +28,13 @@ $ which gossipc
 
 `gossipd` reads its configuration from environment variables. An example `gossipdrc` file is provided with the following contents.:
 ```
-export GOSSIPD_DB_PATH='/tmp/sina.db'
+export GOSSIPD_DIR='/tmp/sina'
 export GOSSIPD_LISTEN_IP='127.0.0.1'
 export GOSSIPD_LISTEN_PORT=5555
 export GOSSIPD_USERNAME=sina
 ```
 
-You can run multiple gossipd instances on the same host as long as the `GOSSIPD_DB_PATH`, `GOSSIPD_LISTEN_PORT` and `GOSSIPD_USERNAME` are unique for each instance.
+You can run multiple gossipd instances on the same host as long as the `GOSSIPD_DIR`, `GOSSIPD_LISTEN_PORT` and `GOSSIPD_USERNAME` are unique for each instance.
 
 `gossipd` runs two independent processes, a daemon and a worker.
 
@@ -66,7 +66,7 @@ On first start, please wait for a while (5 minutes should be sufficient) before 
 
 ### gossipc
 
-`gossipc` is a crude client for interfacing with the gossipd DB. It depends on `GOSSIPD_DB_PATH` being set.
+`gossipc` is a crude client for interfacing with the gossipd dir. It depends on `GOSSIPD_DIR` being set.
 
 Full functionality of `gossipc` can be examined by invoking `gossipc --help`:
 ```

@@ -4,7 +4,7 @@ from __future__ import absolute_import
 import argparse
 import os
 from tomcrypt import rsa
-from gossipd.db.model import Model
+from gossipd.file.model import Model
 from gossipd.util.config import CONF
 
 def main():
@@ -90,7 +90,7 @@ def main():
                 print("Public key format error.")
                 exit(1)
             model = Model()
-            model.set_peer_key(args.name, key_file.read())
+            model.set_peer_key(args.name, keytext)
         exit(0)
 
     if args.delete_peer:
@@ -113,7 +113,7 @@ def main():
         model = Model()
         for message in model.view_messages():
             print(
-                "%s|delivered_by:%s|sender:%s|%s" % (
+                "%s|sender:%s|delivered_by:%s|%s" % (
                     message[0],
                     message[1],
                     message[2],

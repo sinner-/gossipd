@@ -6,7 +6,7 @@ import re
 from gossipd.process.network import Socket
 from gossipd.util.rsa import decrypt
 from gossipd.util.config import CONF
-from gossipd.db.model import Model
+from gossipd.file.model import Model
 
 class Daemon(Socket):
     """ Gossip

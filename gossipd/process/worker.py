@@ -8,7 +8,7 @@ import time
 from tomcrypt import rsa
 from gossipd.util.config import CONF
 from gossipd.util.rsa import encrypt
-from gossipd.db.model import Model
+from gossipd.file.model import Model
 from gossipd.process.network import Socket
 
 class Worker(Socket):
@@ -68,9 +68,9 @@ class Worker(Socket):
                 elif action == 2:
                     print("Generating an RSA key.")
                     key = rsa.Key(CONF.RSA_KEY_SIZE)
-                    name = '_available'
+                    name = '-available'
                     if random.randint(1, 100) <= CONF.BOGUS_KEY_PCT:
-                        name = '_bogus'
+                        name = '-bogus'
                     self._model.save_key(name, key.as_string())
                 elif action == 3:
                     #bogus challenges

@@ -18,9 +18,9 @@ class Configuration(object):
 
     def __init__(self):
         try:
-            self.db_path = os.environ['GOSSIPD_DB_PATH']
+            self.gossipd_dir = os.environ['GOSSIPD_DIR']
         except KeyError:
-            self.db_path = "gossipd.db"
+            self.gossipd_dir = "~/.gossipd"
 
         try:
             self.listen_ip = os.environ['GOSSIPD_LISTEN_IP']
